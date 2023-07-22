@@ -23,10 +23,7 @@ impl Location {
         };
     }
 
-    pub fn from_mapping(
-        mapping: &Mapping
-    ) -> Result<Location, ParseError> {
-
+    pub fn from_mapping(mapping: &Mapping) -> Result<Location, ParseError> {
         let name = parser::extract_value_as_string(mapping, Keywords::NAME)?;
         let ip_string = match parser::extract_value_as_string(&mapping, Keywords::IP) {
             Ok(ip) => Some(ip),
@@ -40,14 +37,18 @@ impl Location {
             Some(ip) => parser::parse_ip(ip)?,
             None => None,
         };
-        
+
         Ok(Location::new(name, ip))
     }
-
 }
 
 impl ToString for Location {
     fn to_string(&self) -> String {
-        format!("name: {}\nip: {:?}\nlocation keys: {:?}", self.name, self.ip, self.locations.keys())
+        format!(
+            "name: {}\nip: {:?}\nlocation keys: {:?}",
+            self.name,
+            self.ip,
+            self.locations.keys()
+        )
     }
 }
