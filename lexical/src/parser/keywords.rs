@@ -3,5 +3,5 @@
 pub struct Keyword;
 
 impl Keyword {
-    pub const Locations: &str = "locations";
+    pub const LOCATIONS: &str = "locations";
 }
