@@ -1,7 +1,7 @@
 use serde_yaml::mapping::Mapping;
 use std::{boxed::Box, collections::HashMap, net::IpAddr};
 
-use crate::locations::keywords::Keywords;
+use crate::location::keywords::Keywords;
 use crate::parser::error_handler::ParseError;
 use crate::parser::parser;
 

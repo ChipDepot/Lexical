@@ -1,4 +1,4 @@
-mod locations;
+mod location;
 mod parser;
 mod utils;
 
