@@ -9,5 +9,7 @@ edition = "2021"
 reqwest = "0.11.18"
 serde = { version = "1.0.173", features = ["derive"] }
 serde_yaml = "0.9.24"
-# anyhow = "1.0.72"
 thiserror = "1.0.44"
+tokio = "1.29.1"
+
+starduck = { git = "https://github.com/ChipDepot/StarDuck.git", branch = "main" }

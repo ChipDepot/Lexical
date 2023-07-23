@@ -1,6 +1,7 @@
 use serde_yaml::mapping::Mapping;
 use std::{boxed::Box, collections::HashMap, net::IpAddr};
 
+use crate::component::component::Component;
 use crate::location::keywords::Keywords;
 use crate::parser::error_handler::ParseError;
 use crate::parser::parser;
@@ -10,6 +11,7 @@ pub struct Location {
     pub name: String,
     pub ip: Option<IpAddr>,
     pub locations: HashMap<String, Box<Location>>,
+    pub components: HashMap<String, Box<Component>>,
     pub properties: HashMap<String, String>,
 }
 
@@ -19,6 +21,7 @@ impl Location {
             locations: HashMap::new(),
             name,
             ip,
+            components: HashMap::new(),
             properties: HashMap::new(),
         };
     }
