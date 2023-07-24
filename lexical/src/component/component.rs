@@ -1,27 +1,78 @@
-use std::collections::HashMap;
+use serde_yaml::Mapping;
 
-use serde_yaml::{Mapping, Value};
+use crate::parser::parser;
+use crate::parser::traits::{AsString, GetKeys};
+use crate::parser::{FromMapping, ParseError};
 
-use super::output::IoTData;
-use super::properties::Property;
+use starduck::component::{Component, ComponentError, ComponentType, IoTOutput};
 
-#[derive(Debug, Clone)]
-pub struct Component {
-    pub name: String,
-    pub properties: HashMap<String, Property>,
-    pub outputs: HashMap<String, IoTData>,
-}
+impl FromMapping for Component {
+    type T = Component;
 
-impl Component {
-    pub fn new(name: String) -> Component {
-        Component {
-            name,
-            properties: HashMap::new(),
-            outputs: HashMap::new(),
+    fn from_mapping(mapp: &Mapping) -> Result<Self::T, ParseError> {
+        // Get name and component-type from Mapping
+        let name = parser::get_as_string(mapp, Component::NAME)?;
+        let component_type = match parser::get_as_string(mapp, Component::COMPONENT_TYPE) {
+            Ok(s) => match ComponentType::from_string(&s) {
+                Ok(ct) => ct,
+                Err(_) => {
+                    panic!("{}", ParseError::InvalidComponentType(s.to_string(), name))
+                }
+            },
+            Err(_) => panic!(
+                "{}",
+                ParseError::NotString(Component::COMPONENT_TYPE.to_string())
+            ),
+        };
+
+        // Create component
+        let mut component = Component::new(name, component_type);
+
+        // Create empty map for None cases
+        let empty_map = Mapping::new();
+
+        // Get outputs mapping
+        let out_mapp = match mapp.get(Component::OUTPUTS) {
+            Some(val) => val.as_mapping().unwrap(),
+            None => &empty_map,
+        };
+
+        // Extract the keys
+        let out_keys = out_mapp.as_vector();
+
+        // Insert the outputs of the component
+        for key in out_keys {
+            let iot_out = match out_mapp.get_as_string(&key) {
+                Some(s) => match IoTOutput::from_string(s) {
+                    Ok(i) => i,
+                    Err(e) => panic!("{}", e),
+                },
+                None => panic!("{}", ParseError::NotString(key)),
+            };
+
+            component.outputs.insert(key, iot_out);
         }
-    }
 
-    pub fn from_mapping() {
-        todo!()
+        // Repeat the same thing for components
+        let com_mapp = match mapp.get(Component::COMPONENTS) {
+            Some(val) => val.as_mapping().unwrap(),
+            None => &empty_map,
+        };
+
+        let com_keys = com_mapp.as_vector();
+
+        for key in com_keys {
+            let child_component = match com_mapp.get(&key) {
+                Some(k) => match k.as_mapping() {
+                    Some(mapp) => Component::from_mapping(mapp),
+                    None => Err(ParseError::MissingKey(key.clone())),
+                },
+                None => break, // No child components
+            };
+
+            component.components.insert(key, Box::new(child_component?));
+        }
+
+        Ok(component)
     }
 }

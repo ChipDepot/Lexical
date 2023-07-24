@@ -7,5 +7,7 @@ pub enum ParseError {
     #[error("The argument for key '`{0}`' is not a valid String")]
     NotString(String),
     #[error("The string `{0}` is not a valid IpAddr")]
-    NotIpAddr(String)
+    NotIpAddr(String),
+    #[error("Invalid component-type `{0}` in component `{1}`")]
+    InvalidComponentType(String, String),
 }
