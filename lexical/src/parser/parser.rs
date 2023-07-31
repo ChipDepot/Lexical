@@ -22,12 +22,15 @@ fn parse_locations(mapp: &Mapping) -> Result<Location, ParseError> {
     // This should give us the parent, or root, location
     let mut location: Location = Location::from_mapping(mapp)?;
     let location_name: String = location.name.clone();
+    let empty_val = &Value::Mapping(Mapping::new());
 
     // Now we get the parent location child location keys
+    // Handle none cases with an empty map
     let keys: Vec<String> = mapp
         .get(Location::LOCATIONS)
-        .unwrap_or_default(Mapping::new)
-        .unwrap_or_default()
+        .unwrap_or_else(|| &empty_val)
+        .as_mapping()
+        .unwrap()
         .as_vector();
 
     // Validate that there is at least a child location
@@ -37,9 +40,13 @@ fn parse_locations(mapp: &Mapping) -> Result<Location, ParseError> {
 
     for key in keys.into_iter() {
         let child_location = match mapp.get(Location::LOCATIONS) {
-            Some(child_locations) => match child_locations.get(&key) {
-                Some(v) => parse_locations(v.as_mapping().unwrap()),
-                None => Err(ParseError::MissingKey(key.clone())), // This shouldn't happen because of the way we get the keys
+            Some(child_locations) => { 
+                let child_map = child_locations.get(&key)
+                    .unwrap()
+                    .as_mapping()
+                    .unwrap();
+                
+                parse_locations(child_map)
             },
             None => break, // There aren't any child locations
         };
