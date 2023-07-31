@@ -11,25 +11,24 @@ use starduck::{
 
 use super::{traits::GetKeys, FromMapping};
 
-fn parse_locations(locations_value: &Value) -> Result<Location, ParseError> {
-    let mapping = match locations_value.as_mapping() {
-        Some(mapping) => mapping,
-        None => panic!("Could not turn "),
-    };
+fn parse_locations(mapp: &Mapping) -> Result<Location, ParseError> {
+    // Get location specific mapping
+    let mapp = mapp
+        .get(Location::LOCATIONS)
+        .expect(&ParseError::MissingKey(String::from(Location::LOCATIONS)).to_string())
+        .as_mapping()
+        .unwrap();
 
     // This should give us the parent, or root, location
-    let mut location: Location = Location::from_mapping(mapping)?;
+    let mut location: Location = Location::from_mapping(mapp)?;
     let location_name: String = location.name.clone();
-    // println!("{:?}", locations_value);
 
     // Now we get the parent location child location keys
-    let keys: Vec<String> = match mapping.get(Location::LOCATIONS) {
-        Some(val) => match val.as_mapping() {
-            Some(mapp) => mapp.as_vector(),
-            None => Vec::new(), // Return empty vector
-        },
-        None => Vec::new(),
-    };
+    let keys: Vec<String> = mapp
+        .get(Location::LOCATIONS)
+        .unwrap_or_default(Mapping::new)
+        .unwrap_or_default()
+        .as_vector();
 
     // Validate that there is at least a child location
     if keys.is_empty() && location.ip.is_none() {
@@ -37,9 +36,9 @@ fn parse_locations(locations_value: &Value) -> Result<Location, ParseError> {
     }
 
     for key in keys.into_iter() {
-        let child_location = match locations_value.get(Location::LOCATIONS) {
+        let child_location = match mapp.get(Location::LOCATIONS) {
             Some(child_locations) => match child_locations.get(&key) {
-                Some(v) => parse_locations(v),
+                Some(v) => parse_locations(v.as_mapping().unwrap()),
                 None => Err(ParseError::MissingKey(key.clone())), // This shouldn't happen because of the way we get the keys
             },
             None => break, // There aren't any child locations
@@ -50,29 +49,6 @@ fn parse_locations(locations_value: &Value) -> Result<Location, ParseError> {
 
     // And now we should be able to return this
     Ok(location)
-}
-
-fn parse_components(mapping: &Mapping) -> HashMap<String, Component> {
-    let mut components: HashMap<String, Component> = HashMap::new();
-
-    let component_keys = mapping.as_vector();
-
-    for key in component_keys {
-        let component = match mapping.get(&key) {
-            Some(c) => match c.as_mapping() {
-                Some(m) => match Component::from_mapping(m) {
-                    Ok(comp) => comp,
-                    Err(e) => panic!("{}", e),
-                },
-                None => panic!("Invalid mapping for Component"),
-            },
-            None => panic!("{}", ParseError::MissingKey(key.clone())), // Shouldn't happen
-        };
-
-        components.insert(key, component);
-    }
-
-    return components;
 }
 
 pub fn parse_ip(ip_string: String) -> Result<Option<IpAddr>, ParseError> {
@@ -96,27 +72,17 @@ pub fn parse_yaml() -> Result<Value, ParseError> {
     // First, we need to get the file. We can
     let file = file::get_file().expect("Could not open file");
     let data: Value = serde_yaml::from_reader(file).expect("Could not read file as YAML");
+    let mapp: &Mapping = data.as_mapping().expect("Could not map file as YAML");
 
-    // Second, we give the locations section of the file to our location parser.
-    let location = parse_locations(
-        &data
-            .get(Location::LOCATIONS)
-            .expect(format!("Missing keyword '{}' on YAML file", Location::LOCATIONS).as_str()),
-    )?;
+    // Second, we build the base components
+    let components: HashMap<String, Component> = parse_components(mapp);
 
-    let components = parse_components(
-        data.get(Component::COMPONENTS.to_string())
-            .expect(&format!(
-                "{}",
-                ParseError::MissingKey(Component::COMPONENTS.to_string())
-            ))
-            .as_mapping()
-            .expect(&format!(
-                "{}",
-                ParseError::MissingKey(Component::COMPONENTS.to_string())
-            )),
-    );
+    // Third, we give the locations section of the file to our location parser.
+    let location = parse_locations(mapp)?;
+
     // let location = HashMap::new();
+
+    // Now, that we got them componentes, we have to add them to the locations
 
     println!(
         "{}",
@@ -131,3 +97,37 @@ pub fn parse_yaml() -> Result<Value, ParseError> {
 
     todo!();
 }
+
+// ---------------------------------------------------------------------------------------------------- //
+
+fn parse_components(mapping: &Mapping) -> HashMap<String, Component> {
+    let mapping: &Mapping = mapping
+        .get(Component::COMPONENTS.to_string())
+        .expect(
+            ParseError::MissingKey(Component::COMPONENTS.to_string())
+                .to_string()
+                .as_str(),
+        )
+        .as_mapping()
+        .expect("Unable to parse Component Mapping");
+
+    let mut components: HashMap<String, Component> = HashMap::new();
+
+    let component_keys = mapping.as_vector();
+
+    for key in component_keys {
+        let component = match mapping.get(&key).unwrap().as_mapping() {
+            Some(m) => match Component::from_mapping(m) {
+                Ok(comp) => comp,
+                Err(e) => panic!("{}", e),
+            },
+            None => panic!("Invalid mapping for Component"),
+        };
+
+        components.insert(key, component);
+    }
+
+    return components;
+}
+
+// ---------------------------------------------------------------------------------------------------- //

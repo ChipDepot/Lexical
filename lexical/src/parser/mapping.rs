@@ -1,11 +1,11 @@
-use super::traits::{AsString, GetKeys};
+use super::{traits::{AsString, GetKeys}, ParseError};
 use serde_yaml::{Mapping, Value};
 
 impl AsString for Mapping {
-    fn get_as_string(&self, key: &str) -> Option<String> {
+    fn get_as_string(&self, key: &str) -> Result<String, ParseError> {
         match self.get(key) {
-            Some(s) => Some(s.as_str().unwrap().to_string()),
-            None => None,
+            Some(s) => Ok(s.as_str().unwrap().to_string()),
+            None => Err(ParseError::MissingKey(key.to_string())),
         }
     }
 }

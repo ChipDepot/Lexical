@@ -12,18 +12,12 @@ impl FromMapping for Component {
     fn from_mapping(mapp: &Mapping) -> Result<Self::T, ParseError> {
         // Get name and component-type from Mapping
         let name = parser::get_as_string(mapp, Component::NAME)?;
-        let component_type = match parser::get_as_string(mapp, Component::COMPONENT_TYPE) {
-            Ok(s) => match ComponentType::from_string(&s) {
-                Ok(ct) => ct,
-                Err(_) => {
-                    panic!("{}", ParseError::InvalidComponentType(s.to_string(), name))
-                }
-            },
-            Err(_) => panic!(
-                "{}",
-                ParseError::NotString(Component::COMPONENT_TYPE.to_string())
-            ),
-        };
+        let component_type = ComponentType::from_string(
+            mapp.get_as_string(Component::COMPONENT_TYPE)
+                .unwrap()
+                .as_str(),
+        )
+        .unwrap();
 
         // Create component
         let mut component = Component::new(name, component_type);
@@ -43,11 +37,11 @@ impl FromMapping for Component {
         // Insert the outputs of the component
         for key in out_keys {
             let iot_out = match out_mapp.get_as_string(&key) {
-                Some(s) => match IoTOutput::from_string(s) {
+                Ok(s) => match IoTOutput::from_string(s) {
                     Ok(i) => i,
                     Err(e) => panic!("{}", e),
                 },
-                None => panic!("{}", ParseError::NotString(key)),
+                Err(_) => panic!("{}", ParseError::NotString(key)),
             };
 
             component.outputs.insert(key, iot_out);

@@ -8,11 +8,15 @@ pub trait FromMapping {
 }
 
 pub trait AsString {
-    fn get_as_string(&self, key: &str) -> Option<String>;
+    fn get_as_string(&self, key: &str) -> Result<String, ParseError>;
 }
 
 pub trait GetKeys {
     type T;
 
     fn as_vector(&self) -> Vec<Self::T>;
+}
+
+pub trait AsMapping {
+    
 }
