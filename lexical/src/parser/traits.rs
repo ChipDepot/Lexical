@@ -18,5 +18,5 @@ pub trait GetKeys {
 }
 
 pub trait AsMapping {
-    
+    fn get_as_mapping(&self, key: &str) -> Option<&Mapping>;
 }

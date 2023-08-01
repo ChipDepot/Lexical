@@ -11,7 +11,7 @@ impl FromMapping for Component {
 
     fn from_mapping(mapp: &Mapping) -> Result<Self::T, ParseError> {
         // Get name and component-type from Mapping
-        let name = parser::get_as_string(mapp, Component::NAME)?;
+        let name = mapp.get_as_string(Component::NAME)?;
         let component_type = ComponentType::from_string(
             mapp.get_as_string(Component::COMPONENT_TYPE)
                 .unwrap()

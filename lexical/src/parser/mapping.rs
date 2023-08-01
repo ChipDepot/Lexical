@@ -1,4 +1,7 @@
-use super::{traits::{AsString, GetKeys}, ParseError};
+use super::{
+    traits::{AsMapping, AsString, GetKeys},
+    ParseError,
+};
 use serde_yaml::{Mapping, Value};
 
 impl AsString for Mapping {
@@ -22,5 +25,11 @@ impl GetKeys for Mapping {
         }
 
         self.keys().map(process_key).collect()
+    }
+}
+
+impl AsMapping for Mapping {
+    fn get_as_mapping(&self, key: &str) -> Option<&Mapping> {
+        self.get(key).and_then(|val| val.as_mapping())
     }
 }

@@ -10,4 +10,6 @@ pub enum ParseError {
     NotIpAddr(String),
     #[error("Invalid component-type `{0}` in component `{1}`")]
     InvalidComponentType(String, String),
+    #[error("Location `{0}` has no child locations or an ip")]
+    NoLocationIp(String),
 }

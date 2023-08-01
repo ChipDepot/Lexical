@@ -5,5 +5,7 @@ mod utils;
 mod application;
 
 fn main() {
-    parser::parser::parse_yaml();
+
+    parser::parser::Parser::parse_yaml(); 
+    
 }
