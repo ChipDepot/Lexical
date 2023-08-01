@@ -1,54 +1,48 @@
+use std::collections::HashMap;
+use std::net::IpAddr;
+
 use serde_yaml::mapping::Mapping;
-use std::{boxed::Box, collections::HashMap, net::IpAddr};
 
-use crate::location::keywords::Keywords;
 use crate::parser::error_handler::ParseError;
-use crate::parser::parser;
+use crate::parser::parser::Parser;
+use crate::parser::traits::{AsString, GetKeys, AsMapping};
+use crate::parser::FromMapping;
 
-#[derive(Debug, Clone)]
-pub struct Location {
-    pub name: String,
-    pub ip: Option<IpAddr>,
-    pub locations: HashMap<String, Box<Location>>,
-    pub properties: HashMap<String, String>,
-}
+use starduck::location::Location;
 
-impl Location {
-    pub fn new(name: String, ip: Option<IpAddr>) -> Location {
-        return Location {
-            locations: HashMap::new(),
-            name,
-            ip,
-            properties: HashMap::new(),
-        };
-    }
+impl FromMapping for Location {
+    type T = Location;
 
-    pub fn from_mapping(mapping: &Mapping) -> Result<Location, ParseError> {
-        let name = parser::extract_value_as_string(mapping, Keywords::NAME)?;
-        let ip_string = match parser::extract_value_as_string(&mapping, Keywords::IP) {
-            Ok(ip) => Some(ip),
-            Err(ParseError::MissingKey(_)) => None,
-            Err(e) => {
-                panic!("{}", e.to_string())
-            }
-        };
+    fn from_mapping(mapping: &Mapping) -> Result<Location, ParseError> {
+        let name = mapping.get_as_string(Location::NAME)?;
+        let ip: Option<IpAddr> = mapping
+            .get_as_string(Location::IP)
+            .and_then(|ip| Parser::parse_ip(&ip))
+            .unwrap_or(None);
 
-        let ip = match ip_string {
-            Some(ip) => parser::parse_ip(ip)?,
-            None => None,
-        };
+        let empty_map = Mapping::new();
 
-        Ok(Location::new(name, ip))
-    }
-}
+        let child_mapping = mapping
+            .get_as_mapping(Location::LOCATIONS)
+            .unwrap_or(&empty_map);
+    
+        let mut locations: HashMap<String, Location> = HashMap::new();
+        let location_keys = child_mapping.as_vector();
+        
+        if ip.is_none() && location_keys.is_empty() {
+            return Err(ParseError::NoLocationIp(String::from(&name)));
+        }
+        
+        for key in location_keys {
+            let child_map = child_mapping.get_as_mapping(&key).unwrap();
+            let location = Location::from_mapping(child_map).unwrap();
+            
+            locations.insert(key, location);
+        }
+    
+        let mut location = Location::new(name, ip);
+        location.locations = locations;
 
-impl ToString for Location {
-    fn to_string(&self) -> String {
-        format!(
-            "name: {}\nip: {:?}\nlocation keys: {:?}",
-            self.name,
-            self.ip,
-            self.locations.keys()
-        )
+        Ok(location)
     }
 }
