@@ -12,5 +12,5 @@ serde_yaml = "0.9.24"
 thiserror = "1.0.44"
 tokio = "1.29.1"
 
-# starduck = { git = "https://github.com/ChipDepot/StarDuck.git", branch = "main" }
-starduck = {path = "../../StarDuck/starduck"}
+starduck = { git = "https://github.com/ChipDepot/StarDuck.git", branch = "main" }
+# starduck = {path = "../../StarDuck/starduck"}
