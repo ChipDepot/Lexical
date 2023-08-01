@@ -4,7 +4,7 @@ use std::net::IpAddr;
 use serde_yaml::mapping::Mapping;
 
 use crate::parser::error_handler::ParseError;
-use crate::parser::parser::Parser;
+use crate::parser::Parser;
 use crate::parser::traits::{AsString, GetKeys, AsMapping};
 use crate::parser::FromMapping;
 

@@ -4,5 +4,6 @@ pub mod traits;
 
 pub use error_handler::ParseError;
 pub use traits::FromMapping;
+pub use parser::Parser;
 
 mod mapping;
