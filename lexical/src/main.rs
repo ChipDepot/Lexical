@@ -6,6 +6,8 @@ mod application;
 
 fn main() {
 
-    parser::parser::Parser::parse_yaml(); 
-    
+    let app = parser::parser::Parser::parse_yaml().unwrap(); 
+
+    println!("{}", serde_json::to_string_pretty(&app).unwrap());
+
 }

@@ -1,10 +1,9 @@
 use serde_yaml::Mapping;
 
-use crate::parser::parser;
 use crate::parser::traits::{AsString, GetKeys};
 use crate::parser::{FromMapping, ParseError};
 
-use starduck::component::{Component, ComponentError, ComponentType, IoTOutput};
+use starduck::component::{Component, ComponentType, IoTOutput};
 
 impl FromMapping for Component {
     type T = Component;
@@ -64,7 +63,7 @@ impl FromMapping for Component {
                 None => break, // No child components
             };
 
-            component.components.insert(key, Box::new(child_component?));
+            component.components.insert(key, child_component?);
         }
 
         Ok(component)

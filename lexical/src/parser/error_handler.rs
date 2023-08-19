@@ -8,8 +8,11 @@ pub enum ParseError {
     NotString(String),
     #[error("The string `{0}` is not a valid IpAddr")]
     NotIpAddr(String),
-    #[error("Invalid component-type `{0}` in component `{1}`")]
-    InvalidComponentType(String, String),
+    // #[error("Invalid component-type `{0}` in component `{1}`")]
+    // InvalidComponentType(String, String),
+    #[error("Invalid property `{0}` in component")]
+    InvalidProperty(String),
     #[error("Location `{0}` has no child locations or an ip")]
     NoLocationIp(String),
+
 }
