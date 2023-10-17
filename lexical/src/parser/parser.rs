@@ -2,8 +2,8 @@ use serde_yaml::{Mapping, Value};
 use starduck::properties::Property;
 use std::{collections::HashMap, net::IpAddr};
 
-use crate::utils::file_handler as file;
 use crate::parser::ParseError;
+use crate::utils::file_handler as file;
 
 use starduck::{application::Application, component::Component, location::Location};
 
@@ -17,10 +17,11 @@ pub struct Parser {}
 
 impl Parser {
     pub fn parse_yaml() -> Result<Application, ParseError> {
-        // First, we need to get the file. We can
-        let file = file::get_file().expect("Could not open file");
+        info!("Loading file");
+        let file = file::get_file(None).expect("Could not open file");
         let data: Value = serde_yaml::from_reader(file).expect("Could not read file as YAML");
         let mapping: &Mapping = data.as_mapping().expect("Could not map file as YAML");
+        info!("YAML File loaded");
 
         let components = Self::parse_components(mapping)?;
         let mut locations = Self::parse_locations(mapping)?;
@@ -28,8 +29,6 @@ impl Parser {
         Self::locate_components(mapping, &mut locations, components.clone());
 
         Ok(Application::new(locations, components.clone()))
-
-        // todo!()
     }
 
     fn parse_components(mapping: &Mapping) -> Result<HashMap<String, Component>, ParseError> {
@@ -45,6 +44,7 @@ impl Parser {
             components.insert(key, component);
         }
 
+        info!("Components validated");
         return Ok(components);
     }
 
@@ -61,6 +61,7 @@ impl Parser {
             locations.insert(key, location);
         }
 
+        info!("Locations validated");
         return Ok(locations);
     }
 
@@ -68,7 +69,7 @@ impl Parser {
         mapping: &Mapping,
         locations: &mut HashMap<String, Box<Location>>,
         components: HashMap<String, Component>,
-    ) { 
+    ) {
         let component_mapping = mapping.get_as_mapping(Component::COMPONENTS).unwrap();
         let component_keys = mapping
             .get_as_mapping(Component::COMPONENTS)
@@ -92,21 +93,26 @@ impl Parser {
                 component.properties.extend(loc_properties);
 
                 if locations.contains_key(&loc_key) {
-                    locations.get_mut(&loc_key).unwrap().components.insert(key.to_owned(), component);
+                    locations
+                        .get_mut(&loc_key)
+                        .unwrap()
+                        .components
+                        .insert(key.to_owned(), component);
                     continue;
                 }
 
-                
                 for (_, location) in &mut *locations {
                     if let Some(location) = location.get_mut(&loc_key) {
-                        location.components.insert(key.to_owned(), component.clone());
+                        location
+                            .components
+                            .insert(key.to_owned(), component.clone());
                         continue;
                     }
-                } 
+                }
             }
         }
 
-        // todo!()
+        info!("Objective Architecture validated");
     }
 
     pub fn parse_ip(ip_string: &str) -> Result<Option<IpAddr>, ParseError> {
