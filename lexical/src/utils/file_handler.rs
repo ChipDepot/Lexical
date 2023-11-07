@@ -1,7 +1,6 @@
 use std::env;
 use std::fs::File;
 use std::path::PathBuf;
-use std::str::FromStr;
 
 use crate::parser::ParseError;
 
