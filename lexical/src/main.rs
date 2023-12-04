@@ -17,7 +17,8 @@ async fn main() {
     info!("Lexical started");
     let app = Parser::parse_yaml().unwrap();
 
+    // Send context to Bran instance
     requester::send_context(&app).await.unwrap();
 
-    println!("{}", serde_json::to_string_pretty(&app).unwrap());
+    // println!("{}", serde_json::to_string_pretty(&app).unwrap());
 }

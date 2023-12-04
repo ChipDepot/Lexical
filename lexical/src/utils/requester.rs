@@ -15,9 +15,16 @@ pub(crate) async fn send_context(app: &Application) -> Result<(), ()> {
 
     match client.post(url.clone()).json(app).send().await {
         Ok(k) => match k.status() {
-            StatusCode::OK => return Ok(()),
+            StatusCode::OK => (),
             _ => panic!("Recived {} from {}", k.status(), url.to_string()),
         },
         Err(_) => panic!("Could not reach {}. Is the app running?", url.to_string()),
     };
+
+    info!(
+        "Objective Architecture for {} has been POSTed to {}",
+        app_name, url
+    );
+
+    return Ok(());
 }
