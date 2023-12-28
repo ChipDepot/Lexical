@@ -1,14 +1,20 @@
-use starduck::application::Application;
-use crate::parser::{traits::FromMapping, ParseError};
+use anyhow::{bail, Result};
 
+use starduck::Application;
+
+use crate::parser::traits::{AsString, FromMapping};
 
 impl FromMapping for Application {
-    type T = Application;
+    fn from_mapping(mapp: &serde_yaml::Mapping) -> Result<Self> {
+        const NAME: &str = "name";
+        const DESCRIPTION: &str = "description";
 
-    fn from_mapping(_mapp: &serde_yaml::Mapping) -> Result<Self::T, ParseError> {
+        if let Some(app_name) = mapp.get_as_string(NAME) {
+            let description = mapp.get_as_string(DESCRIPTION);
 
-        // let app_name = mapp.get_as_string(Application::NAME)?;
-        
-        todo!()
+            return Ok(Application::new(&app_name, description));
+        }
+
+        bail!("Missing application.name on YAML file");
     }
 }

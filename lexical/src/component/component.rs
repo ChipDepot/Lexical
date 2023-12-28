@@ -1,25 +1,23 @@
+use anyhow::Result;
 use serde_yaml::Mapping;
 
 use crate::parser::traits::{AsString, GetKeys};
-use crate::parser::{FromMapping, ParseError};
+use crate::parser::FromMapping;
 
-use starduck::component::{Component, ComponentType, IoTOutput};
+use starduck::{Component, IoTOutput};
+
+const COMPONENT_NAME: &'static str = "name";
 
 impl FromMapping for Component {
-    type T = Component;
+    fn from_mapping(mapp: &Mapping) -> Result<Self> {
+        // Get name and component name from Mapping
+        if let Some(name) = mapp.get_as_string(COMPONENT_NAME) {
+            let mut component = Component::new(&name, None);
+        }
 
-    fn from_mapping(mapp: &Mapping) -> Result<Self::T, ParseError> {
-        // Get name and component-type from Mapping
-        let name = mapp.get_as_string(Component::NAME)?;
-        let component_type = ComponentType::from_string(
-            mapp.get_as_string(Component::COMPONENT_TYPE)
-                .unwrap()
-                .as_str(),
-        )
-        .unwrap();
+        bail!("");
 
         // Create component
-        let mut component = Component::new(name, component_type);
 
         // Create empty map for None cases
         let empty_map = Mapping::new();

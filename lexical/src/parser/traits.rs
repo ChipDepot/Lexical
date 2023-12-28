@@ -1,20 +1,18 @@
-use super::error_handler::ParseError;
+use anyhow::Result;
 use serde_yaml::Mapping;
 
 pub trait FromMapping {
-    type T;
-
-    fn from_mapping(mapp: &Mapping) -> Result<Self::T, ParseError>;
+    fn from_mapping(mapp: &Mapping) -> Result<Self>
+    where
+        Self: Sized;
 }
 
 pub trait AsString {
-    fn get_as_string(&self, key: &str) -> Result<String, ParseError>;
+    fn get_as_string(&self, key: &str) -> Option<String>;
 }
 
-pub trait GetKeys {
-    type T;
-
-    fn as_vector(&self) -> Vec<Self::T>;
+pub trait GetKeys<T> {
+    fn as_vector(&self) -> Vec<T>;
 }
 
 pub trait AsMapping {

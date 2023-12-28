@@ -1,9 +1,13 @@
-pub mod error_handler;
 pub mod parser;
 pub mod traits;
 
-pub use error_handler::ParseError;
 pub use traits::FromMapping;
-pub use parser::Parser;
 
 mod mapping;
+
+pub use parser::parse_yaml;
+
+pub const NAME: &str = "name";
+pub const APPLICATION: &str = "application";
+pub const LOCATIONS: &str = "locations";
+pub const IP: &str = "ip";
