@@ -17,8 +17,8 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Build
-      working-directory: ./starduck
+      working-directory: ./lexical
       run: cargo build --verbose
     - name: Run tests
-      working-directory: ./starduck
+      working-directory: ./lexical
       run: cargo test --verbose
