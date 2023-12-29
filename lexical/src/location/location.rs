@@ -43,10 +43,11 @@ impl FromMapping for Location {
         }
 
         if let Some(requirement_map) = mapping.get_as_mapping(DATA_REQUIREMENTS) {
-            let data_req_keys = mapping.as_vector();
+            let data_req_keys = requirement_map.as_vector();
             let data_requirements = data_req_keys
                 .iter()
                 .map(|key| {
+                    debug!("{key}");
                     let child_map = requirement_map.get_as_mapping(key).unwrap();
                     let data_req = DataRequirement::from_mapping(&child_map).unwrap();
 
