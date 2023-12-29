@@ -1,22 +1,17 @@
-use super::{
-    traits::{AsMapping, AsString, GetKeys},
-    ParseError,
-};
+use super::traits::{AsMapping, AsString, GetKeys};
 use serde_yaml::{Mapping, Value};
 
 impl AsString for Mapping {
-    fn get_as_string(&self, key: &str) -> Result<String, ParseError> {
-        match self.get(key) {
-            Some(s) => Ok(s.as_str().unwrap().to_string()),
-            None => Err(ParseError::MissingKey(key.to_string())),
-        }
+    fn get_as_string(&self, key: &str) -> Option<String> {
+        self.get(key).and_then(|res| match res.as_str() {
+            Some(s) => Some(s.to_string()),
+            None => None,
+        })
     }
 }
 
-impl GetKeys for Mapping {
-    type T = String;
-
-    fn as_vector(&self) -> Vec<Self::T> {
+impl GetKeys<String> for Mapping {
+    fn as_vector(&self) -> Vec<String> {
         fn process_key(key: &Value) -> String {
             match key.as_str() {
                 Some(key) => key.to_string(),

@@ -1,2 +1,1 @@
-mod component;
-mod property;
+mod data_requirements;
