@@ -1,43 +1,66 @@
-use std::collections::HashMap;
 use std::net::IpAddr;
 
-use anyhow::{bail, Result};
+use anyhow::{anyhow, bail, Result};
 use serde_yaml::mapping::Mapping;
 
-use crate::parser::traits::{AsMapping, AsString, GetKeys};
-use crate::parser::{FromMapping, IP, LOCATIONS, NAME};
+use crate::parsing::{AsMapping, AsString, GetKeys};
+use crate::parsing::{FromMapping, DATA_REQUIREMENTS, IP, LOCATIONS, NAME};
 
-use starduck::Location;
+use starduck::{DataRequirement, Location};
 
 impl FromMapping for Location {
-    fn from_mapping(mapping: &Mapping) -> Result<Location> {
-        if let Some(name) = mapping.get_as_string(NAME) {
-            // let ip: Option<IpAddr> = mapping.get_as_string(IP);
+    fn from_mapping(mapping: &Mapping) -> Result<Self> {
+        let name = mapping
+            .get_as_string(NAME)
+            .ok_or(anyhow!("Missing `name` in location"))?;
 
-            let empty_map = Mapping::new();
+        let ip = mapping
+            .get_as_string(IP)
+            .and_then(|ip| ip.parse::<IpAddr>().ok());
 
-            let child_mapping = mapping.get_as_mapping(LOCATIONS).unwrap_or(&empty_map);
+        let mut location = Location::new(&name, ip);
 
-            let mut locations: HashMap<String, Location> = HashMap::new();
+        if let (Some(_), Some(_)) = (mapping.get(LOCATIONS), mapping.get(DATA_REQUIREMENTS)) {
+            bail!("Location {name} has both child locations and data-requirements.");
+        }
+
+        if let Some(child_mapping) = mapping.get_as_mapping(LOCATIONS) {
             let location_keys = child_mapping.as_vector();
 
-            // if ip.is_none() && location_keys.is_empty() {
-            //     bail!("Child location `{name}` has no ip");
-            // }
+            let locations = location_keys
+                .iter()
+                .map(|key| {
+                    let child_map = child_mapping.get_as_mapping(key).unwrap();
+                    let location = Location::from_mapping(child_map).unwrap();
 
-            for key in location_keys {
-                let child_map = child_mapping.get_as_mapping(&key).unwrap();
-                let location = Location::from_mapping(child_map).unwrap();
+                    (key.clone(), location)
+                })
+                .collect();
 
-                locations.insert(key, location);
-            }
-
-            let mut location = Location::new(&name, None);
             location.locations = locations;
 
             return Ok(location);
         }
 
-        bail!("Missing name in location");
+        if let Some(requirement_map) = mapping.get_as_mapping(DATA_REQUIREMENTS) {
+            let data_req_keys = mapping.as_vector();
+            let data_requirements = data_req_keys
+                .iter()
+                .map(|key| {
+                    let child_map = requirement_map.get_as_mapping(key).unwrap();
+                    let data_req = DataRequirement::from_mapping(&child_map).unwrap();
+
+                    (key.clone(), data_req)
+                })
+                .collect();
+
+            location.data_requirements = data_requirements;
+
+            return Ok(location);
+        }
+
+        bail!(
+            "Missing information for {name} location. Missing child locations or data requirements"
+        );
     }
 }

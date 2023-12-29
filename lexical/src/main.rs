@@ -1,7 +1,7 @@
 mod application;
 mod component;
 mod location;
-mod parser;
+mod parsing;
 mod utils;
 
 #[macro_use]
@@ -14,10 +14,11 @@ async fn main() {
     env_logger::init();
 
     info!("Lexical started");
-    let app = parser::parse_yaml().unwrap();
+
+    let app = parsing::parse_yaml().unwrap();
 
     // Send context to Bran instance
     requester::send_context(&app).await.unwrap();
 
-    // println!("{}", serde_json::to_string_pretty(&app).unwrap());
+    println!("{}", serde_json::to_string_pretty(&app).unwrap());
 }

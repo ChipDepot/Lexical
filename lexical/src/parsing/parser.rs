@@ -4,7 +4,7 @@ use anyhow::{anyhow, bail, Result};
 use serde_yaml::{Mapping, Value};
 
 use crate::{
-    parser::{APPLICATION, LOCATIONS},
+    parsing::{APPLICATION, LOCATIONS},
     utils::file_handler as file,
 };
 

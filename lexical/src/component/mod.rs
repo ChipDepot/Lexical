@@ -1,1 +1,1 @@
-mod component;
+mod data_requirements;
