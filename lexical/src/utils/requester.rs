@@ -5,7 +5,7 @@ use url::Url;
 use crate::utils::file_handler;
 
 pub(crate) async fn send_context(app: &Application) -> Result<(), ()> {
-    let app_name = file_handler::get_argument::<String>("-a").unwrap();
+    let app_name = app.name.clone();
     let url = file_handler::get_argument::<Url>("-b")
         .unwrap()
         .join(&app_name)
