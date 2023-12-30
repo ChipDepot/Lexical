@@ -1,7 +1,7 @@
 use std::str::FromStr;
-use std::time::Duration;
 
 use anyhow::{anyhow, Result};
+use chrono::Duration;
 use serde_yaml::Mapping;
 
 use starduck::DataRequirement;
@@ -19,8 +19,8 @@ impl FromMapping for DataRequirement {
 
         let timeout = mapp
             .get(TIMEOUT)
-            .and_then(|val| val.as_u64())
-            .map(Duration::from_secs);
+            .and_then(|val| val.as_i64())
+            .map(Duration::seconds);
 
         let required_count = mapp
             .get(COUNT)
