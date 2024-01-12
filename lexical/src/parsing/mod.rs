@@ -14,3 +14,4 @@ pub const IP: &str = "ip";
 pub const OUTPUT: &str = "output";
 pub const TIMEOUT: &str = "timeout";
 pub const COUNT: &str = "count";
+pub const REQUIRED: &str = "required";
