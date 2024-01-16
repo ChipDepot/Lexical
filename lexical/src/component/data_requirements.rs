@@ -1,5 +1,6 @@
 use std::str::FromStr;
 
+use anyhow::bail;
 use anyhow::{anyhow, Result};
 use chrono::Duration;
 use serde_yaml::Mapping;
@@ -18,9 +19,10 @@ impl FromMapping for DataRequirement {
             .map(|out_str| IoTOutput::from_str(&out_str))??;
 
         let required = mapp
-            .get_as_string(REQUIRED)
+            .get(REQUIRED)
             .ok_or(anyhow!("Missing keyword '{REQUIRED}' for data-requirement"))
-            .map(|out_str| out_str.parse())??;
+            .map(|out| out.as_bool())?
+            .ok_or(anyhow!("Could not parse '{REQUIRED}' into bool"))?;
 
         let timeout = mapp
             .get(TIMEOUT)

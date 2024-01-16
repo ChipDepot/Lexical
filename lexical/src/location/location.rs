@@ -47,7 +47,7 @@ impl FromMapping for Location {
             let data_requirements = data_req_keys
                 .iter()
                 .map(|key| {
-                    debug!("{key}");
+                    info!("Processing {key} in {name}");
                     let child_map = requirement_map.get_as_mapping(key).unwrap();
                     let data_req = DataRequirement::from_mapping(&child_map).unwrap();
 
