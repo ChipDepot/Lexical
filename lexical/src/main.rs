@@ -27,11 +27,8 @@ async fn main() {
         );
         exit(-1);
     });
-    // };
 
     info!("Application {} definition was validated!", &app.name);
-
-    // println!("{}", serde_json::to_string_pretty(&app).unwrap());
 
     // Send context to Bran instance
     requester::send_context(&app).await.unwrap();
